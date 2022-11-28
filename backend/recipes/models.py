@@ -38,8 +38,7 @@ class Ingredient(models.Model):
         max_length=50
     )
 
-    amount = None  # привязка к другой БД
-    measure = models.CharField(
+    measurement_unit = models.CharField(
         'Единица измерения',
         max_length=10
     )
@@ -50,7 +49,7 @@ class Ingredient(models.Model):
         ordering = ['id', 'name']
 
     def __str__(self):
-        return self.name, self.measurement_unit
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class Recipe(models.Model):
@@ -77,6 +76,7 @@ class Recipe(models.Model):
 
     ingredients = models.ManyToManyField(
         Ingredient,
+        through='RecipeIngredients',
         related_name='recipes',
         verbose_name='Ингредиент'
     )
@@ -87,7 +87,7 @@ class Recipe(models.Model):
         verbose_name='Тег'
     )
 
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveIntegerField( # в минутах?
         'Время приготовления'
     )
 
@@ -97,29 +97,31 @@ class Recipe(models.Model):
         ordering = ('id',)
 
     def __str__(self):
-        return self.name
+        return self.name[:30]
 
 
-class RecipesIngredient(models.Model):
+class RecipeIngredients(models.Model):
 
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipes_ingredient',
-        verbose_name='Необходимые ингредиенты',
+        related_name='list_of_ingredients',
+        verbose_name='Данный рецепт',
     )
 
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Ингредиенты для рецепты'
+        verbose_name='Ингредиент для данного рецепта'
     )
 
-    amount = None
+    amount = models.PositiveSmallIntegerField(
+        'Количество ингредиента'
+    )
 
     class Meta:
         verbose_name = 'Ингредиент для рецепта'
         verbose_name_plural = 'Ингрединеты для рецептов'
 
     def __str__(self):
-        return self.ingredient.name, self.ingredient.measure
+        return f'{self.ingredient.name} {self.amount} {self.ingredient.measurement_unit}'  # молоко 500 мл

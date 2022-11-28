@@ -19,7 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'django_filters',
     'djoser',
 
     'rest_framework',
@@ -27,13 +27,21 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
 
     'users.apps.UsersConfig',
-    'recipes'
+    'recipes.apps.RecipesConfig',
+    'api.apps.ApiConfig',
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.MyPagination",
+    "PAGE_SIZE": 10,
 }
 
 AUTH_USER_MODEL = 'users.User'

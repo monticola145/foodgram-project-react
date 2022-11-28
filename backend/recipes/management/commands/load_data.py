@@ -26,6 +26,6 @@ class Command(BaseCommand):
                 f'{settings.BASE_DIR}\\data\\ingredients.csv',
                 encoding='utf-8'
         )):
-            ingredient = Ingredient(name=row['1'],
-                                    measure=row['2'])
+            ingredient = Ingredient(name=row['name'],
+                                    measurement_unit=row['measurement_unit'])
             ingredient.save()
