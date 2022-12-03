@@ -1,73 +1,107 @@
-import re
-
-from django.core.validators import EmailValidator
-from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 from django.contrib.auth import get_user_model
-from recipes.models import Tag, Ingredient, Recipe, RecipeIngredients
-from djoser.serializers import UserSerializer
-from rest_framework.serializers import ModelSerializer, ValidationError
+from djoser.serializers import UserCreateSerializer, UserSerializer
+from drf_extra_fields.fields import Base64ImageField
+from rest_framework.serializers import ModelSerializer, CharField
+from rest_framework.fields import SerializerMethodField
+from django.db.models import F
 
+from recipes.models import Ingredient, Recipe, RecipeIngredients, Tag, Favourite, ShoppingCart
+from users.models import Follow
+
+'''
+Блок сериализаторов приложения users
+'''
 User = get_user_model()
 
 
-class AdminSerializer(ModelSerializer):
-    role = serializers.ChoiceField(choices=User.ROLE_CHOICE, default='user')
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'first_name', 'last_name', 'password',)
+
+
+class CustomUserSerializer(UserSerializer):
+    '''
+    {
+        "email": "user@example.com",
+        "id": 0,
+        "username": "string",
+        "first_name": "Вася",
+        "last_name": "Пупкин",
+        "is_subscribed": false
+    }
+    '''
+    is_subscribed = SerializerMethodField('check_subscribiton')
+    # true/false в redoc, проверить
 
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'first_name', 'last_name',
-            'bio', 'role',
-        )
-        required_fields = ('username', 'email',)
-        
+            'email', 'id', 'username',
+            'first_name', 'last_name',
+            'is_subscribed',
+        )  # проверить в редоке порядок полей
+
+    def check_subscribiton(self, obj):
+        user = self.context.get('request').user
+        if (self.context.get('request').user).is_anonymous:
+            return False
+        else:
+            return Follow.objects.filter(user=user, author=obj).exists()
+        # если падает с follow - это тут (is_anonymous - fix)
 
 
-class MyUserSerializer(UserSerializer):  # придумать крутое название
+class FollowSerializer(CustomUserSerializer):
+    '''
+    {
+        "email": "user@example.com",
+        "id": 0,
+        "username": "string",
+        "first_name": "Вася",
+        "last_name": "Пупкин",
+        "is_subscribed": true,
+        "recipes": [
+            {
+                "id": 0,
+                "name": "string",
+                "image": ".jpeg",
+                "cooking_time": 1
+            }
+        ],
+        "recipes_count": 0
+    }
+    '''
+    recipes = SerializerMethodField('check_his_recipes')
+    recipes_count = SerializerMethodField('count_his_recipes')
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'role')
-        required_fields = ('username', 'email',)
-        read_only_fields = ('role',)
+        fields = (
+            'email', 'id', 'username',
+            'first_name', 'last_name',
+            'is_subscribed', 'recipes',
+            'recipes_count',
+        )  # проверить в редоке порядок полей
+        read_only_fields = ('email', 'username')
+
+    def check_his_recipes(self, obj):  # recipes_limit применить (?)
+        recipes_limit = (self.context.get('request')).GET.get('recipes_limit')
+        recipes = (obj.recipes.all())[:recipes_limit]
+        return (GetMyRecipeSerializer(recipes, many=True)).data
+
+    def count_his_recipes(self, obj):
+        return obj.recipes.count()
 
 
-class SignupSerializer(ModelSerializer):
-    email = serializers.EmailField(
-        validators=(
-            UniqueValidator(queryset=User.objects.all()),
-            EmailValidator()
-        ),
-        required=True
-    )
-    username = serializers.CharField(
-        validators=(UniqueValidator(queryset=User.objects.all()),),
-        max_length=150,
-        required=True
-    )
-
-    class Meta:
-        model = User
-        fields = ('username', 'email',)
-
-    def validate_username(self, value):
-        if value == 'me' or re.match(r'^[\w.@+-]+$', value) is None:
-            raise ValidationError('Недопустимое имя пользователя')
-        return value
-
-
-class TokenSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True)
-    confirmation_code = serializers.CharField(required=True)
-
-    class Meta:
-        fields = ('username', 'confirmation_code',)
+'''
+Блок сериализаторов приложения recipes
+'''
 
 
 class MyTagSerializer(ModelSerializer):  # придумать крутое название
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'slug', 'colour',)
+        fields = ('id', 'name', 'colour', 'slug',)
 
 
 class MyIngredientSerializer(ModelSerializer):  # придумать крутое название
@@ -75,46 +109,87 @@ class MyIngredientSerializer(ModelSerializer):  # придумать круто�
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit',)
 
+class RecipeIngredientsSerializer(ModelSerializer):
+    id = SerializerMethodField(
+        'get_ingredient_id'
+    )
+    name = SerializerMethodField(
+        'get_ingredient_name'
+    )
+    measurement_unit = SerializerMethodField(
+        'get_ingredient_measurement_unit'
+    )
 
-class MyRecipeIngredients(ModelSerializer):
+    def get_ingredient_id(self, obj):
+        return obj.ingredient.id
+
+    def get_ingredient_name(self, obj):
+        return obj.ingredient.name
+
+    def get_ingredient_measurement_unit(self, obj):
+        return obj.ingredient.measurement_unit
 
     class Meta:
         model = RecipeIngredients
-        fields = ('id', 'amount')
+        fields = ('id', 'name', 'measurement_unit', 'amount',)
 
 
-class READINGMyRecipeSerializer(ModelSerializer):  # добавить сюда и в Model - Image
-    author = MyUserSerializer(
-        read_only=True
-    )
+class GetMyRecipeSerializer(ModelSerializer):  # добавить сюда и в Model - Image
     tags = MyTagSerializer(
         many=True,
     )
-    ingredients = MyIngredientSerializer(
-        many=True,
+    author = CustomUserSerializer(
+        read_only=True
     )
+    ingredients = SerializerMethodField('get_ingredients_for_recipe')
+
+    is_favorited = SerializerMethodField('check_if_favourited')
+
+    is_in_shopping_chart = SerializerMethodField('check_if_in_chart')
+
+    image = Base64ImageField()
+
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'author',
-                  'ingredients', 'description',
-                  'tags', 'cooking_time'
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'is_favorited', 'is_in_shopping_chart', 
+                  'name', 'image', 'text', 'cooking_time',
                   )
+        # порядок как в редоке
+
+    def get_ingredients_for_recipe(self, obj):
+        ingredients = RecipeIngredients.objects.filter(recipe=obj)
+
+        return RecipeIngredientsSerializer(ingredients, many=True).data   
+        
+    def check_if_favourited(self, obj):
+        if (self.context.get('request').user).is_anonymous:
+            return False
+        else:
+            return Favourite.objects.filter(recipe=obj).exists()
+    
+    def check_if_in_chart(self, obj):
+        if (self.context.get('request').user).is_anonymous:
+            return False
+        else:
+            return ShoppingCart.objects.filter(recipe=obj).exists()
 
 
-class WRITINGMyRecipeSerializer(ModelSerializer):  # добавить сюда и в Model - Image
-    author = MyUserSerializer(
+class PostMyRecipeSerializer(ModelSerializer):  # добавить сюда и в Model - Image
+    author = CustomUserSerializer(
         read_only=True
     )
     tags = MyTagSerializer(
         many=True,
     )
-    ingredients = MyIngredientSerializer(
-        many=True,
-    )
+    
+    ingredients = MyIngredientSerializer(many=True,)
+
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'author',
-                  'ingredients', 'description',
-                  'tags', 'cooking_time'
+        fields = ('ingredients', 'tags',
+                  'name', 'image', 'text',
+                  'cooking_time',
                   )

@@ -8,18 +8,18 @@ class Tag(models.Model):
 
     name = models.CharField(
         'Тег',
-        max_length=50,
+        max_length=200,
         unique=True
     )
 
     colour = models.CharField(
         'Цветовой HEX-код',
-        unique=True,
-        max_length=50
+        max_length=7
     )
 
     slug = models.SlugField(
         'Slug',
+        max_length=200,
         unique=True
     )
 
@@ -66,24 +66,23 @@ class Recipe(models.Model):
         max_length=50
     )
 
-    # image = models.ImageField(
-    #    'Изображение'
-    # )
+    image = models.ImageField(
+        'Изображение',
+        upload_to='foodgram-project-react//backend//recipes//images'
+    )
 
-    description = models.TextField(
+    text = models.TextField(
         "Описание рецепта",
         help_text='Введите описание рецепта')
 
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredients',
-        related_name='recipes',
         verbose_name='Ингредиент'
     )
 
     tags = models.ManyToManyField(
         Tag,
-        related_name='recipes',
         verbose_name='Тег'
     )
 
@@ -91,13 +90,39 @@ class Recipe(models.Model):
         'Время приготовления'
     )
 
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True
+    )
+
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ('id',)
+        ordering = ('-pub_date',)
 
     def __str__(self):
-        return self.name[:30]
+        return self.name
+
+
+class ShoppingCart(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart',
+        verbose_name='Пользователь')
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart',
+        verbose_name='Рецепт в корзине')
+
+    class Meta:
+        verbose_name = 'Корзина'
+
+    def __str__(self):
+        return f'{self.user}, рецепт {self.recipe} успешно добавлен в Корзину'
 
 
 class RecipeIngredients(models.Model):
@@ -125,3 +150,25 @@ class RecipeIngredients(models.Model):
 
     def __str__(self):
         return f'{self.ingredient.name} {self.amount} {self.ingredient.measurement_unit}'  # молоко 500 мл
+
+
+class Favourite(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+        verbose_name='Пользователь')
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+        verbose_name='Избранный рецепт')
+
+    class Meta:
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
+    
+    def __str__(self):
+        return f'{self.user}, рецепт {self.recipe} успешно добавлен в Избранное'
