@@ -16,7 +16,6 @@ class IsAdminOrReadOnly(BasePermission):
         )
 
 
-
 class CreateOrIsAuthorOrReadOnly(BasePermission):
     """
     Права доступа пользователя.

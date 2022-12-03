@@ -86,7 +86,7 @@ class Recipe(models.Model):
         verbose_name='Тег'
     )
 
-    cooking_time = models.PositiveIntegerField( # в минутах?
+    cooking_time = models.PositiveIntegerField(  # в минутах?
         'Время приготовления'
     )
 
@@ -169,6 +169,6 @@ class Favourite(models.Model):
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
-    
+
     def __str__(self):
         return f'{self.user}, рецепт {self.recipe} успешно добавлен в Избранное'

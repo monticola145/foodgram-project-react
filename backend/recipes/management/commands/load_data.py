@@ -11,6 +11,7 @@ ALREADY_EXISTS_IN_DATA_BASE = """
 'python manage.py migrate' чтобы создать новую пустую БД.
 """
 
+
 class Command(BaseCommand):
     help = 'Загружает данные из ingredient.csv'
 

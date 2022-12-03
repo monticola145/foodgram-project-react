@@ -162,13 +162,13 @@ class RecipeViewSet(ModelViewSet):
             )).delete()
 
             return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
     @action(
-    detail=False,
-    methods=['GET'],
-    permission_classes=(IsAuthenticated,),
-    url_path='download_shopping_cart',
-    url_name='download_shopping_cart',)
+        detail=False,
+        methods=['GET'],
+        permission_classes=(IsAuthenticated,),
+        url_path='download_shopping_cart',
+        url_name='download_shopping_cart',)
     def download_shopping_cart(self, request):
         recipes = []
         for recipe in ShoppingCart.objects.filter(user=self.request.user):

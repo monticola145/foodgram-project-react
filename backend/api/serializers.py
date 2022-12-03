@@ -1,15 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
-from django.db.models import F
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework.serializers import ModelSerializer, CharField, IntegerField, PrimaryKeyRelatedField
 from rest_framework.fields import SerializerMethodField
-from rest_framework.serializers import (CharField, IntegerField,
-                                        ModelSerializer,
-                                        PrimaryKeyRelatedField)
 
-from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
-                            ShoppingCart, Tag)
+from recipes.models import Ingredient, Recipe, RecipeIngredients, Tag, Favourite, ShoppingCart
 from users.models import Follow
 
 '''
@@ -113,6 +109,7 @@ class MyIngredientSerializer(ModelSerializer):  # придумать круто�
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit',)
 
+
 class RecipeIngredientsSerializer(ModelSerializer):
     id = SerializerMethodField(
         'get_ingredient_id'
@@ -156,7 +153,7 @@ class GetMyRecipeSerializer(ModelSerializer):  # добавить сюда и в
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_chart', 
+                  'is_favorited', 'is_in_shopping_chart',
                   'name', 'image', 'text', 'cooking_time',
                   )
         # порядок как в редоке
@@ -164,19 +161,20 @@ class GetMyRecipeSerializer(ModelSerializer):  # добавить сюда и в
     def get_ingredients_for_recipe(self, obj):
         ingredients = RecipeIngredients.objects.filter(recipe=obj)
 
-        return RecipeIngredientsSerializer(ingredients, many=True).data   
-        
+        return RecipeIngredientsSerializer(ingredients, many=True).data
+
     def check_if_favourited(self, obj):
         if (self.context.get('request').user).is_anonymous:
             return False
         else:
             return Favourite.objects.filter(recipe=obj).exists()
-    
+
     def check_if_in_chart(self, obj):
         if (self.context.get('request').user).is_anonymous:
             return False
         else:
             return ShoppingCart.objects.filter(recipe=obj).exists()
+
 
 class AddIngredientsToRecipe(ModelSerializer):
     id = IntegerField()
@@ -201,6 +199,7 @@ class PostMyRecipeSerializer(ModelSerializer):
 
     cooking_time = IntegerField(validators=(MinValueValidator(1, message='>=1'),))
     # сформулировать нормальное требование
+
     class Meta:
         model = Recipe
         fields = ('ingredients', 'tags',
