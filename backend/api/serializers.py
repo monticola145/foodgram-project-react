@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import ModelSerializer, CharField
+from rest_framework.serializers import ModelSerializer, CharField, IntegerField, PrimaryKeyRelatedField
 from rest_framework.fields import SerializerMethodField
 from django.db.models import F
 
@@ -174,22 +175,32 @@ class GetMyRecipeSerializer(ModelSerializer):  # добавить сюда и в
         else:
             return ShoppingCart.objects.filter(recipe=obj).exists()
 
+class AddIngredientsToRecipe(ModelSerializer):
+    id = IntegerField()
+    amount = IntegerField()
 
-class PostMyRecipeSerializer(ModelSerializer):  # добавить сюда и в Model - Image
-    author = CustomUserSerializer(
-        read_only=True
-    )
-    tags = MyTagSerializer(
-        many=True,
-    )
-    
-    ingredients = MyIngredientSerializer(many=True,)
+    class Meta:
+        model = RecipeIngredients
+        fields = ('id', 'amount')
+
+
+class PostMyRecipeSerializer(ModelSerializer):
+    # redoc = ing, tag, img, name, text, cook
+    ingredients = AddIngredientsToRecipe(many=True)
+
+    tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
 
     image = Base64ImageField()
 
+    name = CharField(max_length=200)
+
+    text = CharField()
+
+    cooking_time = IntegerField(validators=(MinValueValidator(1, message='>=1'),))
+    # сформулировать нормальное требование
     class Meta:
         model = Recipe
         fields = ('ingredients', 'tags',
-                  'name', 'image', 'text',
-                  'cooking_time',
+                  'image', 'name',
+                  'text', 'cooking_time',
                   )

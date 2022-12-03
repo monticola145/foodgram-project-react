@@ -13,8 +13,11 @@ from api.serializers import (CustomUserSerializer, FollowSerializer,
                              MyIngredientSerializer, MyTagSerializer,
                              GetMyRecipeSerializer,
                              PostMyRecipeSerializer)
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Ingredient, Recipe, Tag, Favourite, ShoppingCart, RecipeIngredients
 from users.models import Follow
+from django.db.models import Sum
+from django.http import HttpResponse
+
 
 User = get_user_model()
 
@@ -89,6 +92,101 @@ class RecipeViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+        permission_classes=(IsAuthenticated,),
+        url_path='favorite',
+        url_name='favorite',)
+    def add_to_favourite(self, request, pk):
+        '''Добавить в избранное/убрать из избранного'''
+
+        if self.request.method == 'POST':
+            if Favourite.objects.filter(
+                user=self.request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+            ).exists():
+                return Response(status=status.HTTP_201_CREATED)
+            serializer = GetMyRecipeSerializer(
+                get_object_or_404(Recipe, id=pk),
+                context={'request': request}
+            )
+            Favourite.objects.create(
+                user=self.request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+            )
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        elif self.request.method == 'DELETE':
+            (get_object_or_404(
+                Favourite,
+                user=self.request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+            )).delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+        permission_classes=(IsAuthenticated,),
+        url_path='shopping_cart',
+        url_name='shopping_cart',)
+    def shopping_cart_management(self, request, pk):
+        '''Добавить в избранное/убрать из корзины'''
+
+        if self.request.method == 'POST':
+            if ShoppingCart.objects.filter(
+                user=self.request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+            ).exists():
+                return Response(status=status.HTTP_201_CREATED)
+            serializer = GetMyRecipeSerializer(
+                get_object_or_404(Recipe, id=pk),
+                context={'request': request}
+            )
+            ShoppingCart.objects.create(
+                user=self.request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+            )
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        elif self.request.method == 'DELETE':
+            (get_object_or_404(
+                ShoppingCart,
+                user=self.request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+            )).delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @action(
+    detail=False,
+    methods=['GET'],
+    permission_classes=(IsAuthenticated,),
+    url_path='download_shopping_cart',
+    url_name='download_shopping_cart',)
+    def download_shopping_cart(self, request):
+        recipes = []
+        for recipe in ShoppingCart.objects.filter(user=self.request.user):
+            recipes.append(recipe.recipe.id)
+        products = RecipeIngredients.objects.filter(recipe__in=recipes).values(
+            'ingredient').annotate(amount=Sum('amount'))
+
+        text_to_print = 'Нужно купить:'
+        for product in products:
+            text_to_print += (
+                '\n' + str(Ingredient.objects.get(
+                    id=product['ingredient']) + product['amount'] + product['measurement_unit']))
+
+        response = HttpResponse(text_to_print, content_type="text/plain")
+        response['Content-Disposition'] = (
+            'attachment; filename=foodgram_products.txt')
+
+        return response
 
 
 class TagViewSet(ModelViewSet):
