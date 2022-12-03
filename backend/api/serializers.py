@@ -1,12 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from django.db.models import F
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import ModelSerializer, CharField, IntegerField, PrimaryKeyRelatedField
 from rest_framework.fields import SerializerMethodField
-from django.db.models import F
+from rest_framework.serializers import (CharField, IntegerField,
+                                        ModelSerializer,
+                                        PrimaryKeyRelatedField)
 
-from recipes.models import Ingredient, Recipe, RecipeIngredients, Tag, Favourite, ShoppingCart
+from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
+                            ShoppingCart, Tag)
 from users.models import Follow
 
 '''
