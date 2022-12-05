@@ -1,27 +1,24 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from foodgram.settings import MAX_LENGTH_CHARFIELD_USERS, MAX_LENGTH_EMAILFIELD
 
 
 class User(AbstractUser):
     email = models.EmailField(
-        max_length=254,
+        max_length=MAX_LENGTH_EMAILFIELD,
         unique=True,
-        verbose_name='Электронная почта'
-    )
-
+        verbose_name='Электронная почта')
     username = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_CHARFIELD_USERS,
         unique=True,
-        verbose_name='Логин'
-    )
-
+        verbose_name='Логин')
     first_name = models.CharField(
-        max_length=150, verbose_name='Имя', blank=True
-    )
-
+        max_length=MAX_LENGTH_CHARFIELD_USERS, verbose_name='Имя', blank=True)
     last_name = models.CharField(
-        max_length=150, verbose_name='Фамилия', blank=True
-    )
+        max_length=MAX_LENGTH_CHARFIELD_USERS, verbose_name='Фамилия', blank=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -46,3 +43,10 @@ class Follow(models.Model):
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         ordering = ('id',)
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'author'],
+                                    name='unique_follow'),
+            models.CheckConstraint(
+                name='self_follow_prevention',
+                check=~models.Q(user=models.F('author')),
+            ),]

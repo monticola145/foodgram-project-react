@@ -1,27 +1,24 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-User = get_user_model()
+from foodgram.settings import (MAX_LENGTH_CHARFIELD_RECIPES, MAX_LENGTH_COLOR,
+                               MAX_LENGTH_MEASURE, MAX_LENGTH_NAME, MIN_VALUE)
+from users.models import User
 
 
 class Tag(models.Model):
 
     name = models.CharField(
         'Тег',
-        max_length=200,
-        unique=True
-    )
-
-    colour = models.CharField(
+        max_length=MAX_LENGTH_CHARFIELD_RECIPES,
+        unique=True)
+    color = models.CharField(
         'Цветовой HEX-код',
-        max_length=7
-    )
-
+        max_length=MAX_LENGTH_COLOR)
     slug = models.SlugField(
         'Slug',
-        max_length=200,
-        unique=True
-    )
+        max_length=MAX_LENGTH_CHARFIELD_RECIPES,
+        unique=True)
 
     class Meta:
         verbose_name = 'Тег'
@@ -35,18 +32,18 @@ class Ingredient(models.Model):
 
     name = models.CharField(
         'Название ингредиента',
-        max_length=50
-    )
-
+        max_length=MAX_LENGTH_NAME)
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=10
-    )
+        max_length=MAX_LENGTH_MEASURE )
 
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         ordering = ['id', 'name']
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'measurement_unit'],
+                                    name='unique_ingredient'),]
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}'
@@ -58,42 +55,35 @@ class Recipe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='recipes',
-        verbose_name="Автор рецепта",
-    )
-
+        verbose_name='Автор рецепта',)
     name = models.CharField(
         'Название рецепта',
-        max_length=50
-    )
-
+        max_length=MAX_LENGTH_NAME)
     image = models.ImageField(
         'Изображение',
-        upload_to='foodgram-project-react//backend//recipes//images'
-    )
-
+        upload_to='recipes//')
     text = models.TextField(
         "Описание рецепта",
         help_text='Введите описание рецепта')
-
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredients',
-        verbose_name='Ингредиент'
-    )
-
+        verbose_name='Ингредиент')
     tags = models.ManyToManyField(
         Tag,
-        verbose_name='Тег'
-    )
-
-    cooking_time = models.PositiveIntegerField(  # в минутах?
-        'Время приготовления'
-    )
-
+        verbose_name='Тег')
+    cooking_time = models.PositiveSmallIntegerField(
+        'Время приготовления',
+        validators=[
+            MaxValueValidator(
+                1440,
+                message='Укажите корректное время приготовления'),
+            MinValueValidator(
+                MIN_VALUE,
+                message='Укажите корректное время приготовления')])
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
-        auto_now_add=True
-    )
+        auto_now_add=True)
 
     class Meta:
         verbose_name = 'Рецепт'
@@ -104,71 +94,71 @@ class Recipe(models.Model):
         return self.name
 
 
-class ShoppingCart(models.Model):
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Пользователь')
-
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Рецепт в корзине')
-
-    class Meta:
-        verbose_name = 'Корзина'
-
-    def __str__(self):
-        return f'{self.user}, рецепт {self.recipe} успешно добавлен в Корзину'
-
-
 class RecipeIngredients(models.Model):
 
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='list_of_ingredients',
-        verbose_name='Данный рецепт',
-    )
-
+        verbose_name='Данный рецепт',)
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Ингредиент для данного рецепта'
-    )
-
+        verbose_name='Ингредиент для данного рецепта')
     amount = models.PositiveSmallIntegerField(
-        'Количество ингредиента'
-    )
+        'Количество ингредиента',
+        validators=[
+            MinValueValidator(
+                MIN_VALUE,
+                message='Укажите корректное количество ингредиента')])
 
     class Meta:
         verbose_name = 'Ингредиент для рецепта'
         verbose_name_plural = 'Ингрединеты для рецептов'
 
     def __str__(self):
-        return f'{self.ingredient.name} {self.amount} {self.ingredient.measurement_unit}'  # молоко 500 мл
+        return f'{self.ingredient.name} {self.amount} {self.ingredient.measurement_unit}'
 
-
-class Favourite(models.Model):
+class AbstractModel(models.Model):
 
     user = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
-        related_name='favorites',
-        verbose_name='Пользователь')
-
+        on_delete=models.CASCADE)
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE,
-        related_name='favorites',
-        verbose_name='Избранный рецепт')
+        on_delete=models.CASCADE)
+
+    class Meta:
+        abstract = True
+
+
+class Favourite(AbstractModel):
+
+    related_name='favourite'
 
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique_in_favourite'),]
 
     def __str__(self):
         return f'{self.user}, рецепт {self.recipe} успешно добавлен в Избранное'
+
+
+class ShoppingCart(AbstractModel):
+
+    related_name='shopping_cart'
+
+    class Meta:
+        # так и не понял как вербоуз нэймы для юзера и рецептов указать
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзины'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique_recipe_in_cart'),]
+        # а crostraints наследуются дочкой? Или нужно обязательно их прописывать?
+
+    def __str__(self):
+        return f'{self.user}, рецепт {self.recipe} успешно добавлен в Корзину'

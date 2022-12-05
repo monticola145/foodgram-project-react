@@ -6,11 +6,12 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', default='xxxEXTREMELY_SECRET_KEYxxx')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG_STATUS', default=False)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default=['*'])
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,7 +39,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_PAGINATION_CLASS": "api.pagination.MyPagination",
-    "PAGE_SIZE": 10,
+    "PAGE_SIZE": 6,
 }
 
 AUTH_USER_MODEL = 'users.User'
@@ -73,12 +74,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': os.environ.get('DB_ENGINE', default='django.db.backends.postgresql'),
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('POSTGRES_USER'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+            'HOST': os.environ.get('DB_HOST'),
+            'PORT': os.environ.get('DB_PORT'),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -107,7 +120,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DJOSER = {
     'SERIALIZERS': {
@@ -120,4 +137,19 @@ DJOSER = {
         'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     },
     'HIDE_USERS': False,
+    'LOGIN_FIELD': 'email',
 }
+
+MAX_LENGTH_EMAILFIELD = 254
+
+MAX_LENGTH_CHARFIELD_USERS = 150
+
+MAX_LENGTH_CHARFIELD_RECIPES = 200
+
+MAX_LENGTH_NAME = 50
+
+MAX_LENGTH_COLOR = 7
+
+MAX_LENGTH_MEASURE = 10
+
+MIN_VALUE = 1
