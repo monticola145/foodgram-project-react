@@ -17,10 +17,10 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'id',
         'author', 'in_favourites',
-        'list_of_ingredients')
-    list_filter = ('author', 'name')
-    readonly_fields = ('list_of_ingredients')
-    inlines = (IngredientTabular, TagTabular)
+        'list_of_ingredients',)
+    list_filter = ('author', 'name',)
+    readonly_fields = ('list_of_ingredients',)
+    inlines = (IngredientTabular, TagTabular,)
 
     @staticmethod
     @admin.display(description='Количество в избранных')
