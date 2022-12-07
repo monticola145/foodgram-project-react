@@ -15,7 +15,7 @@ class Command(BaseCommand):
     help = 'Загружает данные из ingredient.csv'
 
     def handle(self, *args, **options):
-        
+
         if Tag.objects.exists():
             print('Данные Tags уже существуют!')
             print(ALREADY_EXISTS_IN_DATA_BASE)
@@ -24,9 +24,10 @@ class Command(BaseCommand):
         for row in DictReader(open(
                 f'{settings.BASE_DIR}\\data\\tags.csv',
                 encoding='utf-8')):
-            tags = Tag.objects.get_or_create(name=row['name'],
-                        color=row['color'],
-                        slug=row['slug'])
+            Tag.objects.get_or_create(
+                name=row['name'],
+                color=row['color'],
+                slug=row['slug'])
 
         if Ingredient.objects.exists():
             print('Данные Ingredient уже существуют!')
@@ -36,7 +37,8 @@ class Command(BaseCommand):
         for row in DictReader(open(
                 f'{settings.BASE_DIR}\\data\\ingredients.csv',
                 encoding='utf-8')):
-            ingredient = Ingredient.objects.get_or_create(name=row['name'],
-                                    measurement_unit=row['measurement_unit'])
-        
+            Ingredient.objects.get_or_create(
+                name=row['name'],
+                measurement_unit=row['measurement_unit'])
+
         print('Загрузка завершена!')

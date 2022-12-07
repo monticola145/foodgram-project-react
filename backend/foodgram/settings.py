@@ -84,7 +84,8 @@ if DEBUG:
 else:
     DATABASES = {
         'default': {
-            'ENGINE': os.environ.get('DB_ENGINE', default='django.db.backends.postgresql'),
+            'ENGINE': os.environ.get(
+                'DB_ENGINE', default='django.db.backends.postgresql'),
             'NAME': os.environ.get('DB_NAME'),
             'USER': os.environ.get('POSTGRES_USER'),
             'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
@@ -153,3 +154,5 @@ MAX_LENGTH_COLOR = 7
 MAX_LENGTH_MEASURE = 10
 
 MIN_VALUE = 1
+
+MAX_VALUE = 1140

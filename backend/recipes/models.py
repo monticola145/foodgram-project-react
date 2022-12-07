@@ -1,8 +1,6 @@
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from foodgram.settings import (MAX_LENGTH_CHARFIELD_RECIPES, MAX_LENGTH_COLOR,
-                               MAX_LENGTH_MEASURE, MAX_LENGTH_NAME, MIN_VALUE)
 from users.models import User
 
 
@@ -10,14 +8,14 @@ class Tag(models.Model):
 
     name = models.CharField(
         'Тег',
-        max_length=MAX_LENGTH_CHARFIELD_RECIPES,
+        max_length=settings.MAX_LENGTH_CHARFIELD_RECIPES,
         unique=True)
     color = models.CharField(
         'Цветовой HEX-код',
-        max_length=MAX_LENGTH_COLOR)
+        max_length=settings.MAX_LENGTH_COLOR)
     slug = models.SlugField(
         'Slug',
-        max_length=MAX_LENGTH_CHARFIELD_RECIPES,
+        max_length=settings.MAX_LENGTH_CHARFIELD_RECIPES,
         unique=True)
 
     class Meta:
@@ -32,10 +30,10 @@ class Ingredient(models.Model):
 
     name = models.CharField(
         'Название ингредиента',
-        max_length=MAX_LENGTH_NAME)
+        max_length=settings.MAX_LENGTH_NAME)
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=MAX_LENGTH_MEASURE )
+        max_length=settings.MAX_LENGTH_MEASURE)
 
     class Meta:
         verbose_name = 'Ингредиент'
@@ -58,10 +56,10 @@ class Recipe(models.Model):
         verbose_name='Автор рецепта',)
     name = models.CharField(
         'Название рецепта',
-        max_length=MAX_LENGTH_NAME)
+        max_length=settings.MAX_LENGTH_NAME)
     image = models.ImageField(
         'Изображение',
-        upload_to='recipes//')
+        upload_to='recipes/')
     text = models.TextField(
         "Описание рецепта",
         help_text='Введите описание рецепта')
@@ -76,10 +74,10 @@ class Recipe(models.Model):
         'Время приготовления',
         validators=[
             MaxValueValidator(
-                1440,
+                settings.MAX_VALUE,
                 message='Укажите корректное время приготовления'),
             MinValueValidator(
-                MIN_VALUE,
+                settings.MIN_VALUE,
                 message='Укажите корректное время приготовления')])
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -109,7 +107,7 @@ class RecipeIngredients(models.Model):
         'Количество ингредиента',
         validators=[
             MinValueValidator(
-                MIN_VALUE,
+                settings.MIN_VALUE,
                 message='Укажите корректное количество ингредиента')])
 
     class Meta:
@@ -119,14 +117,17 @@ class RecipeIngredients(models.Model):
     def __str__(self):
         return f'{self.ingredient.name} {self.amount} {self.ingredient.measurement_unit}'
 
+
 class AbstractModel(models.Model):
 
     user = models.ForeignKey(
         User,
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь')
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт')
 
     class Meta:
         abstract = True
@@ -134,9 +135,8 @@ class AbstractModel(models.Model):
 
 class Favourite(AbstractModel):
 
-    related_name='favourite'
-
-    class Meta:
+    class Meta(AbstractModel.Meta):
+        default_related_name = 'favorite'
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
         constraints = [
@@ -149,16 +149,13 @@ class Favourite(AbstractModel):
 
 class ShoppingCart(AbstractModel):
 
-    related_name='shopping_cart'
-
-    class Meta:
-        # так и не понял как вербоуз нэймы для юзера и рецептов указать
+    class Meta(AbstractModel.Meta):
+        default_related_name = 'shopping_cart'
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique_recipe_in_cart'),]
-        # а crostraints наследуются дочкой? Или нужно обязательно их прописывать?
 
     def __str__(self):
         return f'{self.user}, рецепт {self.recipe} успешно добавлен в Корзину'
