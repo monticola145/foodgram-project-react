@@ -49,6 +49,7 @@ class CustomUserViewSet(UserViewSet):
                 user=request.user,
                 author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
 
     @action(
         detail=True,
