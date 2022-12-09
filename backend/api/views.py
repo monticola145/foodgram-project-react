@@ -1,14 +1,4 @@
 import django_filters.rest_framework
-from django.db.models import Sum
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from djoser.views import UserViewSet
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
-
 from api.filters import IngredientsFilter, RecipesFilter
 from api.pagination import MyPagination
 from api.permissions import IsAdminOrReadOnly
@@ -16,8 +6,17 @@ from api.serializers import (CustomUserSerializer, FavouriteSerializer,
                              FollowSerializer, GetMyRecipeSerializer,
                              MyIngredientSerializer, MyTagSerializer,
                              PostMyRecipeSerializer, ShoppingCartSerializer)
+from django.db.models import Sum
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet
 from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
                             ShoppingCart, Tag)
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 from users.models import Follow, User
 
 
@@ -44,7 +43,7 @@ class CustomUserViewSet(UserViewSet):
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=request.user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        elif request.method == 'DELETE':
+        if request.method == 'DELETE':
             get_object_or_404(
                 Follow,
                 user=request.user,

@@ -2,12 +2,11 @@ from django.core.validators import MinValueValidator, ValidationError
 from django.db import IntegrityError
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
+from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
+                            ShoppingCart, Tag)
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import (IntegerField, ModelSerializer,
                                         PrimaryKeyRelatedField, ReadOnlyField)
-
-from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
-                            ShoppingCart, Tag)
 from users.models import User
 
 

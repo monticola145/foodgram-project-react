@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
 from users.models import User
 
 
@@ -42,7 +41,7 @@ class Ingredient(models.Model):
         ordering = ['id', 'name']
         constraints = [
             models.UniqueConstraint(fields=['name', 'measurement_unit'],
-                                    name='unique_ingredient'),]
+                                    name='unique_ingredient'), ]
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}'
@@ -142,7 +141,7 @@ class Favourite(AbstractModel):
         verbose_name_plural = 'Избранные рецепты'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
-                                    name='unique_in_favourite'),]
+                                    name='unique_in_favourite'), ]
 
     def __str__(self):
         return f'{self.user}, рецепт {self.recipe} успешно добавлен в Избранное'
@@ -156,7 +155,7 @@ class ShoppingCart(AbstractModel):
         verbose_name_plural = 'Корзины'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
-                                    name='unique_recipe_in_cart'),]
+                                    name='unique_recipe_in_cart'), ]
 
     def __str__(self):
         return f'{self.user}, рецепт {self.recipe} успешно добавлен в Корзину'

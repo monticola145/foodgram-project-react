@@ -2,7 +2,6 @@ from csv import DictReader
 
 from django.conf import settings
 from django.core.management import BaseCommand
-
 from recipes.models import Ingredient, Tag
 
 ALREADY_EXISTS_IN_DATA_BASE = """
