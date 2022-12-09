@@ -20,6 +20,7 @@ from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
                             ShoppingCart, Tag)
 from users.models import Follow, User
 
+
 class CustomUserViewSet(UserViewSet):
     '''Вьюсет для пользователей'''
 
@@ -86,7 +87,7 @@ class RecipeViewSet(ModelViewSet):
         serializer = serializer(
             data={'user': request.user.id, 'recipe': pk},
             context={'request': request}
-            )
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status.HTTP_201_CREATED)
@@ -144,13 +145,13 @@ class RecipeViewSet(ModelViewSet):
         for product in queryset:
 
             text_to_print += (
-                '\n' +
-                str(Ingredient.objects.get(
-                    name=product['ingredient__name']).name) +
-                ' ' +
-                str(product['amount']) +
-                ' ' +
-                str(Ingredient.objects.get(
+                '\n'
+                + str(Ingredient.objects.get(
+                    name=product['ingredient__name']).name)
+                + ' '
+                + str(product['amount'])
+                + ' '
+                + str(Ingredient.objects.get(
                     name=product['ingredient__name']).measurement_unit))
 
         response = HttpResponse(text_to_print, content_type='text/plain')

@@ -33,6 +33,7 @@ class RecipeAdmin(admin.ModelAdmin):
     def list_of_ingredients(self, obj):
         return ', '.join([ingredient.name for ingredient in obj.ingredients.all()])
 
+
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit',)

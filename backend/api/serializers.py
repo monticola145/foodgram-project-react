@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, ValidationError
 from django.db import IntegrityError
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -162,24 +162,21 @@ class PostMyRecipeSerializer(ModelSerializer):
                   'image', 'name',
                   'text', 'cooking_time',
                   )
+
     def validate_ingredients(self, data):
         if data:
             ingredient_ids = []
-            ingredients_amounts = []
             for ingredient in data:
                 if ingredient['id'] in ingredient_ids:
-                    raise serializers.ValidationError({
-                    'ingredients_uniqueness': 'Ингредиенты должны быть уникальными'
-                })
+                    raise ValidationError({
+                        'ingredients_uniqueness': 'Ингредиенты должны быть уникальными'})
                 ingredient_ids.append(ingredient['id'])
                 if int(ingredient['amount']) == 0:
-                    raise serializers.ValidationError({
-                    'ingredients_amount': 'Количество ингредиентов должно быть ненулевым'
-                })
+                    raise ValidationError({
+                        'ingredients_amount': 'Количество ингредиентов должно быть ненулевым'})
         else:
             raise ValidationError({
-                'ingredients_existence': 'Ингредиенты отсутствуют'
-            })
+                'ingredients_existence': 'Ингредиенты отсутствуют'})
         return data
 
     def validate_tags(self, data):
@@ -187,16 +184,14 @@ class PostMyRecipeSerializer(ModelSerializer):
             tags = []
             for tag in data:
                 if tag in tags:
-                    raise serializers.ValidationError({
-                    'tags_uniqueness': 'Тэги должны быть уникальными'
-                })
+                    raise ValidationError({
+                        'tags_uniqueness': 'Тэги должны быть уникальными'})
                 tags.append(tag)
         else:
             raise ValidationError({
                 'tags_existence': 'Тэги отсутствуют'
             })
         return data
-
 
     @staticmethod
     def get_ingredients(recipe=None, ingredients=None):
