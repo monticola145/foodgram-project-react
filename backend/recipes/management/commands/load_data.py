@@ -23,7 +23,7 @@ class Command(BaseCommand):
             return
         print('Идёт загрузка данных Tags')
         for row in DictReader(open(
-                f'{settings.BASE_DIR}\\data\\tags.csv',
+                f'{settings.BASE_DIR}/data/tags.csv',
                 encoding='utf-8')):
             Tag.objects.get_or_create(
                 name=row['name'],
@@ -36,7 +36,7 @@ class Command(BaseCommand):
             return
         print('Идёт загрузка данных Ingredient')
         for row in DictReader(open(
-                f'{settings.BASE_DIR}\\data\\ingredients.csv',
+                f'{settings.BASE_DIR}/data/ingredients.csv',
                 encoding='utf-8')):
             Ingredient.objects.get_or_create(
                 name=row['name'],

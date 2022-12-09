@@ -8,9 +8,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='xxxEXTREMELY_SECRET_KEYxxx')
 
-DEBUG = os.getenv('DEBUG_STATUS', default=False)
+DEBUG = True#os.getenv('DEBUG_STATUS', default=False)
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*')
+ALLOWED_HOSTS = (os.getenv('ALLOWED_HOSTS', default='*'),)
 
 
 INSTALLED_APPS = [

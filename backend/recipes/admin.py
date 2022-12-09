@@ -6,6 +6,8 @@ from .models import (Favourite, Ingredient, Recipe, RecipeIngredients,
 
 class IngredientTabular(admin.TabularInline):
     model = Recipe.ingredients.through
+    min_num = 1
+    extra = 0
 
 
 class TagTabular(admin.TabularInline):
@@ -29,11 +31,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Список ингредиентов')
     def list_of_ingredients(self, obj):
-        text_to_print = ''
-        for ingredient in obj.ingredients.all():
-            text_to_print += (' ' + ingredient.name + ',')
-        return text_to_print[:-1]
-
+        return ', '.join([ingredient.name for ingredient in obj.ingredients.all()])
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):

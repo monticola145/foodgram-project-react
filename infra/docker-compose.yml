@@ -9,7 +9,7 @@ services:
       - ./.env
 
   backend:
-    image: monticola/foodgram_backend:v4
+    image: monticola/foodgram_backend:v1
     restart: always
     volumes:
       - static_value:/app/static/
@@ -23,6 +23,8 @@ services:
     image: monticola/foodgram_frontend:v1
     volumes:
       - ../frontend/:/app/result_build/
+    depends_on:
+      - backend
 
   nginx:
     image: nginx:1.19.3
@@ -37,6 +39,7 @@ services:
       - media_value:/var/html/media/
     depends_on:
       - backend
+      - frontend
   
 volumes:
   postgres_db:

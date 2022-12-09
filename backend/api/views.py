@@ -20,12 +20,8 @@ from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
                             ShoppingCart, Tag)
 from users.models import Follow, User
 
-'''
-Блок вьюсетов приложения users
-'''
-
-
 class CustomUserViewSet(UserViewSet):
+    '''Вьюсет для пользователей'''
 
     pagination_class = MyPagination
     queryset = User.objects.all()
@@ -70,12 +66,9 @@ class CustomUserViewSet(UserViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-'''
-Блок вьюсетов приложения recipes
-'''
-
-
 class RecipeViewSet(ModelViewSet):
+    '''Вьюсет для рецептов'''
+
     queryset = Recipe.objects.all()
     pagination_class = MyPagination
     serializer_class = None
@@ -99,21 +92,9 @@ class RecipeViewSet(ModelViewSet):
         return Response(serializer.data, status.HTTP_201_CREATED)
 
     @staticmethod
-    def delete_action(model=None, serializer=None, request=None, pk=None):
-        if model.objects.filter(
-            user=request.user,
-            recipe=pk
-        ).exists():
-            model.objects.filter(
-                user=request.user,
-                recipe=pk).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        text = 'Рецепт не найден в корзине'
-        if model == Favourite:
-            text = 'Рецепт не найден в Избранном'
-        return Response(
-            {'error': text},
-            status=status.HTTP_400_BAD_REQUEST)
+    def delete_action(model=None, request=None):
+        get_object_or_404(model, user=get_object_or_404(User, id=request.user.id)).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
@@ -124,7 +105,7 @@ class RecipeViewSet(ModelViewSet):
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
-        return self.delete_action(Favourite, FavouriteSerializer, request, pk)
+        return self.delete_action(Favourite, request)
 
     @action(
         detail=True,
@@ -180,6 +161,8 @@ class RecipeViewSet(ModelViewSet):
 
 
 class TagViewSet(ModelViewSet):
+    '''Вьюсет для тегов'''
+
     queryset = Tag.objects.all()
     serializer_class = MyTagSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -187,6 +170,8 @@ class TagViewSet(ModelViewSet):
 
 
 class IngredientViewSet(ModelViewSet):
+    '''Вьюсет для ингредиентов'''
+
     queryset = Ingredient.objects.all()
     serializer_class = MyIngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)

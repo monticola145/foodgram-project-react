@@ -137,7 +137,7 @@ class AbstractModel(models.Model):
 class Favourite(AbstractModel):
 
     class Meta(AbstractModel.Meta):
-        default_related_name = 'favorite'
+        default_related_name = 'favorites'
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
         constraints = [
