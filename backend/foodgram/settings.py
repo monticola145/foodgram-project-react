@@ -37,9 +37,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
-    ],
-    "DEFAULT_PAGINATION_CLASS": "api.pagination.MyPagination",
-    "PAGE_SIZE": 6,
+    ]
 }
 
 AUTH_USER_MODEL = 'users.User'

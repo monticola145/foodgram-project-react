@@ -24,9 +24,9 @@ from users.models import Follow, User
 class CustomUserViewSet(UserViewSet):
     '''Вьюсет для пользователей'''
 
-    pagination_class = MyPagination
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    pagination_class = MyPagination
 
     @action(
         detail=True,
@@ -72,11 +72,11 @@ class RecipeViewSet(ModelViewSet):
     '''Вьюсет для рецептов'''
 
     queryset = Recipe.objects.all()
-    pagination_class = MyPagination
     serializer_class = None
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_class = RecipesFilter
+    pagination_class = MyPagination
 
     def get_serializer_class(self):
         if self.request.method not in SAFE_METHODS:
