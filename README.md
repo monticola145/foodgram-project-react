@@ -19,7 +19,7 @@ Foodgram - это сайт, предназначенный для публика
 git clone https://github.com/monticola/foodgram-project-react.git
 ```
 
-```
+
 Развернуть Докер-контейнеры:
 ```
 docker-compose up
