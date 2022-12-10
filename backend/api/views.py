@@ -127,7 +127,6 @@ class RecipeViewSet(ModelViewSet):
     def delete_shopping_cart(self, request, pk):
         return self.delete_action(
             ShoppingCart,
-            ShoppingCartSerializer,
             request,
             pk)
 
