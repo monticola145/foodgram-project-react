@@ -2,11 +2,12 @@ from django.core.validators import MinValueValidator, ValidationError
 from django.db import IntegrityError
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
-                            ShoppingCart, Tag)
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import (IntegerField, ModelSerializer,
                                         PrimaryKeyRelatedField, ReadOnlyField)
+
+from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
+                            ShoppingCart, Tag)
 from users.models import User
 
 
@@ -106,13 +107,13 @@ class GetMyRecipeSerializer(ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     ingredients = SerializerMethodField('get_ingredients_for_recipe')
     is_favorited = SerializerMethodField('check_if_favourited')
-    is_in_shopping_chart = SerializerMethodField('check_if_in_chart')
+    is_in_shopping_cart = SerializerMethodField('check_if_in_cart')
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_chart',
+                  'is_favorited', 'is_in_shopping_cart',
                   'name', 'image', 'text', 'cooking_time',)
 
     def get_ingredients_for_recipe(self, obj):
@@ -126,7 +127,7 @@ class GetMyRecipeSerializer(ModelSerializer):
             return False
         return request.user.favorites.filter(recipe=obj).exists()
 
-    def check_if_in_chart(self, obj):
+    def check_if_in_cart(self, obj):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
@@ -170,9 +171,9 @@ class PostMyRecipeSerializer(ModelSerializer):
                     raise ValidationError({
                         'ingredients_uniqueness': 'Ингредиенты должны быть уникальными'})
                 ingredient_ids.append(ingredient['id'])
-                if int(ingredient['amount']) == 0:
+                if int(ingredient['amount']) <= 0:
                     raise ValidationError({
-                        'ingredients_amount': 'Количество ингредиентов должно быть ненулевым'})
+                        'ingredients_amount': 'Количество ингредиентов должно быть больше нуля'})
         else:
             raise ValidationError({
                 'ingredients_existence': 'Ингредиенты отсутствуют'})

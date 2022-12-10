@@ -1,11 +1,4 @@
 import django_filters.rest_framework
-from api.filters import IngredientsFilter, RecipesFilter
-from api.pagination import MyPagination
-from api.permissions import IsAdminOrReadOnly
-from api.serializers import (CustomUserSerializer, FavouriteSerializer,
-                             FollowSerializer, GetMyRecipeSerializer,
-                             MyIngredientSerializer, MyTagSerializer,
-                             PostMyRecipeSerializer, ShoppingCartSerializer)
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -17,6 +10,14 @@ from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+
+from api.filters import IngredientsFilter, RecipesFilter
+from api.pagination import MyPagination
+from api.permissions import IsAdminOrReadOnly
+from api.serializers import (CustomUserSerializer, FavouriteSerializer,
+                             FollowSerializer, GetMyRecipeSerializer,
+                             MyIngredientSerializer, MyTagSerializer,
+                             PostMyRecipeSerializer, ShoppingCartSerializer)
 from users.models import Follow, User
 
 
@@ -52,12 +53,12 @@ class CustomUserViewSet(UserViewSet):
         return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
 
     @action(
-        detail=True,
+        detail=False,
         methods=['GET'],
         permission_classes=(IsAuthenticated,),
         url_path='subscriptions',
         url_name='subscriptions',)
-    def follows(self, request, id):
+    def follows(self, request):
         '''Список подписок'''
         queryset = User.objects.filter(following__user=request.user)
         page = self.paginate_queryset(queryset)
@@ -93,8 +94,11 @@ class RecipeViewSet(ModelViewSet):
         return Response(serializer.data, status.HTTP_201_CREATED)
 
     @staticmethod
-    def delete_action(model=None, request=None):
-        get_object_or_404(model, user=get_object_or_404(User, id=request.user.id)).delete()
+    def delete_action(model=None, request=None, pk=None):
+        get_object_or_404(
+            model,
+            recipe__id=pk,
+            user=get_object_or_404(User, id=request.user.id)).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -106,7 +110,7 @@ class RecipeViewSet(ModelViewSet):
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
-        return self.delete_action(Favourite, request)
+        return self.delete_action(Favourite, request, pk)
 
     @action(
         detail=True,
