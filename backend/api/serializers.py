@@ -59,10 +59,13 @@ class FollowSerializer(CustomUserSerializer):
         if not request or request.user.is_anonymous:
             return False
         recipes_limit = request.GET.get('recipes_limit')
-        recipes = obj.author.recipes.all()
+        recipes = Recipe.objects.filter(author=obj)
         if recipes_limit:
-            recipes = (obj.author.recipes.all())[:int(recipes_limit)]
-        return GetMyRecipeSerializer(recipes, many=True).data
+            recipes = recipes[:int(recipes_limit)]
+        return GetMyRecipeSerializer(
+            recipes,
+            context={'request': request},
+            many=True).data
 
     @staticmethod
     def count_his_recipes(obj):
