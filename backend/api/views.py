@@ -3,6 +3,8 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
+from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
+                            ShoppingCart, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -16,8 +18,6 @@ from api.serializers import (CustomUserSerializer, FavouriteSerializer,
                              FollowSerializer, GetMyRecipeSerializer,
                              MyIngredientSerializer, MyTagSerializer,
                              PostMyRecipeSerializer, ShoppingCartSerializer)
-from recipes.models import (Favourite, Ingredient, Recipe, RecipeIngredients,
-                            ShoppingCart, Tag)
 from users.models import Follow, User
 
 
@@ -44,20 +44,21 @@ class CustomUserViewSet(UserViewSet):
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=request.user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        elif request.method == 'DELETE':
+        if request.method == 'DELETE':
             get_object_or_404(
                 Follow,
                 user=request.user,
                 author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
 
     @action(
-        detail=True,
+        detail=False,
         methods=['GET'],
         permission_classes=(IsAuthenticated,),
         url_path='subscriptions',
         url_name='subscriptions',)
-    def follows(self, request, id):
+    def follows(self, request):
         '''Список подписок'''
         queryset = User.objects.filter(following__user=request.user)
         page = self.paginate_queryset(queryset)
@@ -93,8 +94,11 @@ class RecipeViewSet(ModelViewSet):
         return Response(serializer.data, status.HTTP_201_CREATED)
 
     @staticmethod
-    def delete_action(model=None, request=None):
-        get_object_or_404(model, user=get_object_or_404(User, id=request.user.id)).delete()
+    def delete_action(model=None, request=None, pk=None):
+        get_object_or_404(
+            model,
+            recipe__id=pk,
+            user=get_object_or_404(User, id=request.user.id)).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -106,7 +110,7 @@ class RecipeViewSet(ModelViewSet):
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
-        return self.delete_action(Favourite, request)
+        return self.delete_action(Favourite, request, pk)
 
     @action(
         detail=True,
@@ -123,7 +127,6 @@ class RecipeViewSet(ModelViewSet):
     def delete_shopping_cart(self, request, pk):
         return self.delete_action(
             ShoppingCart,
-            ShoppingCartSerializer,
             request,
             pk)
 

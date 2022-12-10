@@ -1,6 +1,9 @@
 name,color,slug
-Халяль,008000,halal
-Веган,006400,vegan
-Мясо,9b2f1f,meat
-Национальное,008000,national
-Острое,B22222,spicy
+Ужин,#4a61dd,dinner
+Обед,#49b64e,lunch
+Завтрак,#e26c2d,breakfast
+Халяль,#008000,halal
+Веган,#006400,vegan
+Мясо,#9b2f1f,meat
+Национальное,#008000,national
+Острое,#B22222,spicy
