@@ -27,7 +27,7 @@ class RecipeAdmin(admin.ModelAdmin):
     @staticmethod
     @admin.display(description='Количество в избранных')
     def in_favourites(obj):
-        return obj.favorite.count()
+        return obj.favorites.count()
 
     @admin.display(description='Список ингредиентов')
     def list_of_ingredients(self, obj):
