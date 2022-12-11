@@ -12,7 +12,6 @@ services:
     image: monticola/foodgram_backend:v1
     restart: always
     volumes:
-      - redoc:/app/api/docs/
       - static_value:/app/static/
       - media_value:/app/media/
     depends_on:
@@ -43,7 +42,6 @@ services:
       - frontend
   
 volumes:
-  redoc:
   postgres_db:
   static_value:
   media_value:
