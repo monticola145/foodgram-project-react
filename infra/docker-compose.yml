@@ -23,7 +23,7 @@ services:
     image: monticola/foodgram_frontend:v1
     volumes:
       - ../frontend/:/app/result_build/
-    depends_on: 
+    depends_on:
       - backend
 
   nginx:
