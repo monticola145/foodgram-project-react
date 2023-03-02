@@ -2,9 +2,6 @@
 
 ![Actions Status](https://github.com/monticola145/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
-### Ссылка на проект
-
-Проект доступен по ссылке: http://51.250.0.96/
 
 ### Описание проекта
 
