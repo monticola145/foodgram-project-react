@@ -24,7 +24,6 @@ docker-compose exec backend python manage.py migrate --run-syncdb
 docker-compose exec backend python manage.py createsuperuser
 docker-compose exec backend python manage.py collectstatic --no-input
 docker-compose exec backend python manage.py load_data
-
 ```
 
 
@@ -90,14 +89,13 @@ docker-compose exec backend python manage.py migrate --run-syncdb
 docker-compose exec backend python manage.py createsuperuser
 docker-compose exec backend python manage.py collectstatic --no-input
 docker-compose exec backend python manage.py load_data
-
 ```
 ### Technologies used
 
 * PYTHON
 * DJANGO
 * DJANGO REST FRAMEWORK
-# JWY
+* JWY
 
 
 ### API documentation
