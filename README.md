@@ -56,18 +56,12 @@ docker-compose exec backend python manage.py load_data
 
 ### Шаблон .env файла
 
-# База данных
-DB_ENGINE=django.db.backends.postgresql
-# Название БД
-DB_NAME=
-# Логин пользователя БД
-POSTGRES_USER=
-# Пароль пользователя БД
-POSTGRES_PASSWORD=
-# Название хоста
-DB_HOST=
-# Порт
-DB_PORT=
+DB_ENGINE=django.db.backends.postgresql (База данных)
+DB_NAME= Название БД
+POSTGRES_USER= Логин пользователя БД
+POSTGRES_PASSWORD= Пароль пользователя БД
+DB_HOST= Название хоста
+DB_PORT= Порт
 
 
 ### Автор:
