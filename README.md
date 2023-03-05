@@ -65,6 +65,11 @@ DB_PORT= Порт
 Git - https://github.com/monticola
 Email - ```jandiev2001@yandex.ru```
 
+
+
+
+
+
 # The YAMDB Project
 
 ### Project description
